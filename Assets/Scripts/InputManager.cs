@@ -2,7 +2,8 @@
 using System.Collections;
 using System;
 
-public class InputManager : MonoBehaviour {
+public class InputManager : MonoBehaviour
+{
 
   public float m_timeBetweenInput = 0.2f;
   private float m_timeBetweenInptuAcum = float.MaxValue;
@@ -13,11 +14,10 @@ public class InputManager : MonoBehaviour {
   public KeyCode m_KeyRotateLeft;
   public KeyCode m_KeyRotateRight;
 
-  public event Action MoveDown;
-  public event Action MoveLeft;
-  public event Action MoveRight;
-  public event Action RotateLeft;
-  public event Action RotateRight;
+  public event Action<bool> MoveDown;
+  public event Action<bool> MoveLeft;
+  public event Action<bool> MoveRight;
+  public event Action<bool> Rotate;
 
   #region singleton
   private static InputManager m_instance;
@@ -28,65 +28,132 @@ public class InputManager : MonoBehaviour {
   #endregion
   void Awake()
   {
-    if(m_instance != null && m_instance != this)
+    if (m_instance != null && m_instance != this)
     {
       Destroy(this.gameObject);
       return;
     }
     m_instance = this;
   }
-  
-	// Update is called once per frame
-	void Update () {
+
+  // Update is called once per frame
+  void Update()
+  {
     m_timeBetweenInptuAcum += Time.deltaTime;
-    if(m_timeBetweenInptuAcum >= m_timeBetweenInput)
+    if (m_timeBetweenInptuAcum >= m_timeBetweenInput)
     {
       m_timeBetweenInptuAcum = 0;
-      ManageInput();
+      ManageSecondaryInput();
     }
-	}
+    ManageImportantInput();
+  }
 
-  private void ManageInput()
+  private void ManageImportantInput()
   {
-    if(Input.GetKey(m_KeyMoveDown))
+    if (DownManagement())
     {
-      if(MoveDown != null)
+      return;
+    }
+    if (LeftMovementManagement())
+    {
+      return;
+    }
+    if (RightMovementManagement())
+    {
+      return;
+    }
+  }
+
+  private void ManageSecondaryInput()
+  {
+    if (RotationManagement())
+    {
+      return;
+    }
+  }
+
+  private bool DownManagement()
+  {
+    if (Input.GetKeyDown(m_KeyMoveDown))
+    {
+      if (MoveDown != null)
       {
-        MoveDown();
-        return;
+        MoveDown(true);
+        return true;
       }
     }
-    if (Input.GetKey(m_KeyMoveLeft))
+
+    if (Input.GetKeyUp(m_KeyMoveDown))
     {
-      if(MoveLeft != null)
+      if (MoveDown != null)
       {
-        MoveLeft();
-        return;
+        MoveDown(false);
+        return true;
       }
     }
-    if (Input.GetKey(m_KeyMoveRight))
+    return false;
+  }
+  private bool LeftMovementManagement()
+  {
+    if (Input.GetKeyDown(m_KeyMoveLeft))
     {
-      if(MoveRight != null)
+      if (MoveLeft != null)
       {
-        MoveRight();
-        return;
+        MoveLeft(true);
+        return true;
       }
     }
+
+    if (Input.GetKeyUp(m_KeyMoveLeft))
+    {
+      if (MoveLeft != null)
+      {
+        MoveLeft(false);
+        return true;
+      }
+    }
+    return false;
+  }
+  private bool RightMovementManagement()
+  {
+    if (Input.GetKeyDown(m_KeyMoveRight))
+    {
+      if (MoveRight != null)
+      {
+        MoveRight(true);
+        return true;
+      }
+    }
+
+    if (Input.GetKeyUp(m_KeyMoveRight))
+    {
+      if (MoveRight != null)
+      {
+        MoveRight(false);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private bool RotationManagement()
+  {
     if (Input.GetKey(m_KeyRotateLeft))
     {
-      if(RotateLeft != null)
+      if (Rotate != null)
       {
-        RotateLeft();
-        return;
+        Rotate(true);
+        return true;
       }
     }
     if (Input.GetKey(m_KeyRotateRight))
     {
-      if(RotateRight != null)
+      if (Rotate != null)
       {
-        RotateRight();
-        return;
+        Rotate(false);
+        return true;
       }
     }
+    return false;
   }
 }
