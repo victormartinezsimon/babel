@@ -7,6 +7,15 @@ public class CollisionDetection : MonoBehaviour
   void OnCollisionEnter(Collision collision)
   {
     if (m_manager != null)
+    {
       m_manager.OnCollisionEnter();
+    }
+  }
+
+  void OnTriggerEnter(Collider other)
+  {
+    {
+      m_manager.OnCollisionEnter();
+    }
   }
 }

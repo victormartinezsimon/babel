@@ -41,7 +41,7 @@ public class PieceManager : MonoBehaviour
     if (!m_firstCollision)
     {
       m_firstCollision = true;
-      GameManager.GetInstance().OnCollisionDetection(CalculateMaxHeight());
+      GameManager.GetInstance().OnCollisionDetection();
       UpdateCollisionSystem(false);
       RemoveCollisionDetectionFromSons();
       AddRigidbodysToSons();
@@ -77,11 +77,15 @@ public class PieceManager : MonoBehaviour
       m_piezes[i].AddComponent<Rigidbody>();
     }
   }
-  private float CalculateMaxHeight()
+  public float CalculateMaxHeight()
   {
     float maxHeight = float.MinValue;
     for (int i = 0; i < m_piezes.Length; ++i)
     {
+      if(m_piezes[i] == null)
+      {
+        continue;
+      }
       maxHeight = Mathf.Max(maxHeight, m_piezes[i].transform.position.y);
     }
     return maxHeight;
