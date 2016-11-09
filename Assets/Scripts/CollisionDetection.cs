@@ -3,19 +3,10 @@ using System.Collections;
 
 public class CollisionDetection : MonoBehaviour
 {
-
-  public PiezeManager m_manager;
-
+  public PieceManager m_manager;
   void OnCollisionEnter(Collision collision)
   {
-    m_manager.OnCollisionEnter();
-  }
-
-  void Update()
-  {
-    if(Input.GetKeyDown(KeyCode.F1))
-    {
+    if (m_manager != null)
       m_manager.OnCollisionEnter();
-    }
   }
 }
