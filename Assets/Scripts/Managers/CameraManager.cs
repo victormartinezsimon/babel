@@ -60,8 +60,6 @@ public class CameraManager : MonoBehaviour
     {
       m_timeAcum = 0;
       float maxHeight = m_manager.MaxHeight();
-      Debug.Log("max height is =>" + maxHeight);
-      Debug.Log("total time => " + totalTime);
       if (maxHeight >= m_heightUp.DetectionPoint)
       {
         MoveCameraUp();
