@@ -87,7 +87,6 @@ public class PieceManager : MonoBehaviour
     for (int i = 0; i < m_piezes.Length; ++i)
     {
       m_piezes[i].useGravity = true;
-      m_piezes[i].isKinematic = false;
     }
   }
 
@@ -131,7 +130,6 @@ public class PieceManager : MonoBehaviour
   }
   public void SetVelocityDown(float newVel)
   {
-    Debug.Log("set velocity Down to =>" + newVel);
     for (int i = 0; i < m_piezes.Length; ++i)
     {
       m_piezes[i].velocity = Vector3.down * newVel;

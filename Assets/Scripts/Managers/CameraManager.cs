@@ -53,14 +53,15 @@ public class CameraManager : MonoBehaviour
       return;
     }
 
-
     float totalTime = 1 / m_timesToCheckPerSecond;
     m_timeAcum += Time.deltaTime;
 
-    if (totalTime >= m_timeAcum)
+    if (m_timeAcum >= totalTime)
     {
       m_timeAcum = 0;
       float maxHeight = m_manager.MaxHeight();
+      Debug.Log("max height is =>" + maxHeight);
+      Debug.Log("total time => " + totalTime);
       if (maxHeight >= m_heightUp.DetectionPoint)
       {
         MoveCameraUp();
@@ -83,6 +84,7 @@ public class CameraManager : MonoBehaviour
   [ContextMenu("Move Up")]
   private void MoveCameraUp()
   {
+    Debug.Log("move camera up");
     InAnimation = true;
     m_camera.transform.DOMoveY(transform.position.y + m_heightUp.Increase, animationDuration).SetEase(Ease.OutQuart).OnComplete(() =>
     {
@@ -94,6 +96,7 @@ public class CameraManager : MonoBehaviour
   [ContextMenu("Move Down")]
   private void MoveCameraDown()
   {
+    Debug.Log("move camera down");
     InAnimation = true;
     float destination = Mathf.Max(m_minValue, transform.position.y - m_heightDown.Increase);
     m_camera.transform.DOMoveY(destination, animationDuration).SetEase(Ease.OutQuart).OnComplete(() =>
