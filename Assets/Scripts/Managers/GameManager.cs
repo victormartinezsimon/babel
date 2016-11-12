@@ -8,7 +8,6 @@ public class GameManager : MonoBehaviour
   public Transform InitialPosition;
   public GameObject[] Pieces;
 
-  private MovementVariables m_movementVariables;
   private PieceManager m_currentPieze;
   private GameObject m_nextPieze;
 
@@ -19,12 +18,6 @@ public class GameManager : MonoBehaviour
   public static GameManager GetInstance()
   {
     return m_instance;
-  }
-  #endregion
-  #region Getters and Setters
-  public MovementVariables MovementVariables
-  {
-    get { return m_movementVariables; }
   }
   #endregion
 
@@ -40,7 +33,6 @@ public class GameManager : MonoBehaviour
   // Use this for initialization
   void Start()
   {
-    m_movementVariables = GetComponent<MovementVariables>();
     m_nextPieze = Pieces[Random.Range(0, Pieces.Length)];
     m_listPieces = new List<PieceManager>();
     GeneratePiece();

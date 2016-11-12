@@ -5,9 +5,6 @@ public class PieceMovement : MonoBehaviour {
 
   private PieceManager m_pieceManager;
   private bool m_fast;
-  private bool m_moveLeft;
-  private bool m_moveRight;
-
 
   void Start()
   {
@@ -18,7 +15,7 @@ public class PieceMovement : MonoBehaviour {
   void Update()
   {
     MovementDown();
-    LateralMovement();
+    //LateralMovement();
   }
 
   public void CreateCallbacks()
@@ -26,8 +23,8 @@ public class PieceMovement : MonoBehaviour {
     InputManager instance = InputManager.GetInstance();
     instance.Rotate += Rotate;
     instance.MoveDown += MoveDown;
-    instance.MoveLeft += MoveLeft;
-    instance.MoveRight += MoveRight;
+    instance.MoveLeft += LeftMovement;
+    instance.MoveRight += RightMovement;
   }
 
   public void RemoveCallbacks()
@@ -35,29 +32,32 @@ public class PieceMovement : MonoBehaviour {
     InputManager instance = InputManager.GetInstance();
     instance.Rotate -= Rotate;
     instance.MoveDown -= MoveDown;
-    instance.MoveLeft -= MoveLeft;
-    instance.MoveRight -= MoveRight;
+    instance.MoveLeft -= LeftMovement;
+    instance.MoveRight -= RightMovement;
   }
 
   #region CallBacks
   private void Rotate(bool left)
   {
-    Vector3 actualRotation = transform.rotation.eulerAngles;
+    Vector3 actualRotation = transform.localRotation.eulerAngles;
     Vector3 vector = left ? Vector3.forward : Vector3.back;
-    actualRotation += vector * m_pieceManager.GameManager.MovementVariables.Rotation;
-    transform.rotation = Quaternion.Euler(actualRotation);
+    actualRotation += vector * MovementVariables.GetInstance().Rotation;
+    transform.localRotation = Quaternion.Euler(actualRotation);
   }
+
+  private void LeftMovement()
+  {
+    m_pieceManager.MoveToPosition(new Vector3(-m_pieceManager.GetPiezeSize().x, 0, 0));
+  }
+
+  private void RightMovement()
+  {
+    m_pieceManager.MoveToPosition(new Vector3(m_pieceManager.GetPiezeSize().x, 0, 0));
+  }
+
   private void MoveDown(bool start)
   {
     m_fast = start;
-  }
-  private void MoveLeft(bool start)
-  {
-    m_moveLeft = start;
-  }
-  private void MoveRight(bool start)
-  {
-    m_moveRight = start;
   }
   #endregion
 
@@ -66,26 +66,11 @@ public class PieceMovement : MonoBehaviour {
   {
     if(m_fast)
     {
-      m_pieceManager.Rigidbody.velocity =  Vector3.down * m_pieceManager.GameManager.MovementVariables.ForceFast;
+      m_pieceManager.SetVelocityDown(MovementVariables.GetInstance().ForceFast);
     }
     else
     {
-      m_pieceManager.Rigidbody.velocity = Vector3.down * m_pieceManager.GameManager.MovementVariables.ForceNormal;
-    }
-  }
-  private void LateralMovement()
-  {
-    if(m_moveLeft)
-    {
-      m_pieceManager.Rigidbody.velocity = new Vector3(-m_pieceManager.GameManager.MovementVariables.ForceNormal, m_pieceManager.Rigidbody.velocity.y, 0);
-    }
-    if (m_moveRight)
-    {
-      m_pieceManager.Rigidbody.velocity = new Vector3(m_pieceManager.GameManager.MovementVariables.ForceNormal, m_pieceManager.Rigidbody.velocity.y, 0);
-    }
-    if (!m_moveLeft && !m_moveRight)
-    {
-      m_pieceManager.Rigidbody.velocity = new Vector3(0, m_pieceManager.Rigidbody.velocity.y, 0);
+      m_pieceManager.SetVelocityDown(MovementVariables.GetInstance().ForceNormal);
     }
   }
   #endregion
