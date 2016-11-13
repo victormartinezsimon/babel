@@ -59,7 +59,7 @@ public class CameraManager : MonoBehaviour
     if (m_timeAcum >= totalTime)
     {
       m_timeAcum = 0;
-      float maxHeight = m_manager.MaxHeight();
+      float maxHeight = m_manager.ActualHeight;
       if (maxHeight >= m_heightUp.DetectionPoint)
       {
         MoveCameraUp();

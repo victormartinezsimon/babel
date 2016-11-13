@@ -17,11 +17,20 @@ public class GameManager : MonoBehaviour
   public Transform m_nextPiezeHolder;
   private GameObject nextPieceInstance;
 
+  private float m_actualPuntuaction;
+
   #region singleton
   private static GameManager m_instance;
   public static GameManager GetInstance()
   {
     return m_instance;
+  }
+  #endregion
+
+  #region Getters
+  public float ActualHeight
+  {
+    get { return m_actualPuntuaction; }
   }
   #endregion
 
@@ -46,6 +55,8 @@ public class GameManager : MonoBehaviour
   {
     m_listPieces.Add(m_currentPieze);
     GeneratePiece();
+    CalculateMaxHeight();
+    RecordManager.GetInstance().SetActualPuntuaction(m_actualPuntuaction);
   }
 
   private void GeneratePiece()
@@ -86,7 +97,7 @@ public class GameManager : MonoBehaviour
 
   }
 
-  public float MaxHeight()
+  public void CalculateMaxHeight()
   {
     float best = float.MinValue;
 
@@ -94,7 +105,6 @@ public class GameManager : MonoBehaviour
     {
       best = Mathf.Max(best, m_listPieces[i].CalculateMaxHeight());
     }
-
-    return best;
+    m_actualPuntuaction = best;
   }
 }
