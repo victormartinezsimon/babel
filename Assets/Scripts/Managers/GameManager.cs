@@ -79,6 +79,10 @@ public class GameManager : MonoBehaviour
       colliders[i].enabled = false;
     }
 
+    for(int i = 0; i < nextPieceInstance.transform.childCount; ++i)
+    {
+      nextPieceInstance.transform.GetChild(i).gameObject.layer = LayerMask.NameToLayer("NextPiece");
+    }
 
   }
 
