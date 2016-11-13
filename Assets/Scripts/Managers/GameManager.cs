@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
@@ -18,6 +20,11 @@ public class GameManager : MonoBehaviour
   private GameObject nextPieceInstance;
 
   private float m_actualPuntuaction;
+
+  public float m_TotalLives = 10;
+  private bool m_endGame;
+  public GameObject m_endGameText;
+  public Text m_actualLivesText;
 
   #region singleton
   private static GameManager m_instance;
@@ -48,7 +55,9 @@ public class GameManager : MonoBehaviour
   {
     m_nextPiece = Pieces[Random.Range(0, Pieces.Length)];
     m_listPieces = new List<PieceManager>();
+    EnableTextGameOver(false);
     GeneratePiece();
+    UpdateActualLivesText();
   }
 
   public void OnCollisionDetection()
@@ -61,10 +70,14 @@ public class GameManager : MonoBehaviour
 
   private void GeneratePiece()
   {
+    if(m_endGame)
+    {
+      return;
+    }
     Vector3 position = InitialPosition.position;
     float sizeX = Ground.GetComponent<Renderer>().bounds.size.x;
     float x = Random.Range(-sizeX/2.0f, sizeX / 2.0f);
-    position.x = Mathf.RoundToInt(x);
+    position.x = x;
        
     GameObject go = Instantiate(m_nextPiece, position, Quaternion.identity) as GameObject;
     m_currentPiece = go.GetComponent<PieceManager>();
@@ -93,6 +106,7 @@ public class GameManager : MonoBehaviour
     for(int i = 0; i < nextPieceInstance.transform.childCount; ++i)
     {
       nextPieceInstance.transform.GetChild(i).gameObject.layer = LayerMask.NameToLayer("NextPiece");
+      Destroy(nextPieceInstance.transform.GetChild(i).gameObject.GetComponent<PieceHelper>());
     }
 
   }
@@ -106,5 +120,40 @@ public class GameManager : MonoBehaviour
       best = Mathf.Max(best, m_listPieces[i].CalculateMaxHeight());
     }
     m_actualPuntuaction = best;
+  }
+
+  public void PieceDeleted()
+  {
+    --m_TotalLives;
+    m_TotalLives = Mathf.Max(0, m_TotalLives);
+    UpdateActualLivesText();
+    if (m_TotalLives <= 0)
+    {
+      m_endGame = true;
+      StartCoroutine(FinishGame());
+    }
+  }
+
+  private IEnumerator FinishGame()
+  {
+    EnableTextGameOver(true);
+    yield return new WaitForSeconds(5f);
+    SceneManager.LoadScene("Game");
+  }
+
+  private void EnableTextGameOver(bool value)
+  {
+    if(m_endGameText != null)
+    {
+      m_endGameText.SetActive(value);
+    }
+  }
+
+  private void UpdateActualLivesText()
+  {
+    if(m_actualLivesText != null)
+    {
+      m_actualLivesText.text = m_TotalLives.ToString();
+    }
   }
 }

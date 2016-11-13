@@ -5,6 +5,8 @@ public class PieceMovement : MonoBehaviour {
 
   private PieceManager m_pieceManager;
   private bool m_fast;
+  private bool m_left;
+  private bool m_right;
 
   void Start()
   {
@@ -15,7 +17,7 @@ public class PieceMovement : MonoBehaviour {
   void Update()
   {
     MovementDown();
-    //LateralMovement();
+    MovementLateral();
   }
 
   public void CreateCallbacks()
@@ -45,14 +47,14 @@ public class PieceMovement : MonoBehaviour {
     transform.localRotation = Quaternion.Euler(actualRotation);
   }
 
-  private void LeftMovement()
+  private void LeftMovement(bool start)
   {
-    m_pieceManager.MoveToPosition(new Vector3(-m_pieceManager.GetPieceSize().x, 0, 0));
+    m_left = start;
   }
 
-  private void RightMovement()
+  private void RightMovement(bool start)
   {
-    m_pieceManager.MoveToPosition(new Vector3(m_pieceManager.GetPieceSize().x, 0, 0));
+    m_right = start;
   }
 
   private void MoveDown(bool start)
@@ -73,6 +75,25 @@ public class PieceMovement : MonoBehaviour {
       m_pieceManager.SetVelocityDown(MovementVariables.GetInstance().ForceNormal);
     }
   }
+
+  private void MovementLateral()
+  {
+    if(!m_right && !m_left)
+    {
+      m_pieceManager.SetVelocitiyLateral(0);
+      return;
+    }
+    if(m_right)
+    {
+      m_pieceManager.SetVelocitiyLateral(MovementVariables.GetInstance().ForceLateral);
+    }
+    if (m_left)
+    {
+      m_pieceManager.SetVelocitiyLateral(-MovementVariables.GetInstance().ForceLateral);
+    }
+  }
+
+
   #endregion
 
 }

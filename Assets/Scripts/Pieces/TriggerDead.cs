@@ -9,6 +9,7 @@ public class TriggerDead : MonoBehaviour
     Destroy(other.gameObject);
     GameObject go = Instantiate(DeadParticles) as GameObject;
     go.transform.position = other.transform.position;
+    GameManager.GetInstance().PieceDeleted();
     Destroy(go, 1);
   }
 }

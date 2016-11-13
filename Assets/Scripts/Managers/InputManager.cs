@@ -16,8 +16,8 @@ public class InputManager : MonoBehaviour
 
   public event Action<bool> MoveDown;
   public event Action<bool> Rotate;
-  public event Action MoveLeft;
-  public event Action MoveRight;
+  public event Action<bool> MoveLeft;
+  public event Action<bool> MoveRight;
 
   #region singleton
   private static InputManager m_instance;
@@ -54,6 +54,16 @@ public class InputManager : MonoBehaviour
     {
       return;
     }
+
+    if (OnLeftMovement())
+    {
+      return;
+    }
+
+    if (OnRightMovement())
+    {
+      return;
+    }
   }
 
   private void ManageSecondaryInput()
@@ -62,17 +72,6 @@ public class InputManager : MonoBehaviour
     {
       return;
     }
-
-    if(OnLeftMovement())
-    {
-      return;
-    }
-
-    if(OnRightMovement())
-    {
-      return;
-    }
-
   }
 
   private bool DownManagement()
@@ -99,11 +98,19 @@ public class InputManager : MonoBehaviour
 
   private bool OnLeftMovement()
   {
-    if (Input.GetKey(m_KeyMoveLeft))
+    if (Input.GetKeyDown(m_KeyMoveLeft))
     {
       if (MoveLeft != null)
       {
-        MoveLeft();
+        MoveLeft(true);
+        return true;
+      }
+    }
+    if (Input.GetKeyUp(m_KeyMoveLeft))
+    {
+      if (MoveLeft != null)
+      {
+        MoveLeft(false);
         return true;
       }
     }
@@ -111,11 +118,20 @@ public class InputManager : MonoBehaviour
   }
   private bool OnRightMovement()
   {
-    if (Input.GetKey(m_KeyMoveRight))
+    if (Input.GetKeyDown(m_KeyMoveRight))
     {
       if (MoveRight != null)
       {
-        MoveRight();
+        MoveRight(true);
+        return true;
+      }
+    }
+
+    if (Input.GetKeyUp(m_KeyMoveRight))
+    {
+      if (MoveRight != null)
+      {
+        MoveRight(false);
         return true;
       }
     }
