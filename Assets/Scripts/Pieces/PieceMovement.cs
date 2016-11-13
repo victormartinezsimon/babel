@@ -47,12 +47,12 @@ public class PieceMovement : MonoBehaviour {
 
   private void LeftMovement()
   {
-    m_pieceManager.MoveToPosition(new Vector3(-m_pieceManager.GetPiezeSize().x, 0, 0));
+    m_pieceManager.MoveToPosition(new Vector3(-m_pieceManager.GetPieceSize().x, 0, 0));
   }
 
   private void RightMovement()
   {
-    m_pieceManager.MoveToPosition(new Vector3(m_pieceManager.GetPiezeSize().x, 0, 0));
+    m_pieceManager.MoveToPosition(new Vector3(m_pieceManager.GetPieceSize().x, 0, 0));
   }
 
   private void MoveDown(bool start)

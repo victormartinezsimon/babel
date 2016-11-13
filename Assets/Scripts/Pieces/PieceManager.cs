@@ -4,7 +4,7 @@ using System.Collections;
 public class PieceManager : MonoBehaviour
 {
 
-  public Rigidbody[] m_piezes;
+  public Rigidbody[] m_pieces;
 
   private bool m_firstCollision;
 
@@ -13,7 +13,7 @@ public class PieceManager : MonoBehaviour
 
   private Rigidbody m_rigidbody;
 
-  private Vector3 sizePieze = Vector3.zero;
+  private Vector3 sizePiece = Vector3.zero;
 
   #region Getters
  
@@ -22,13 +22,13 @@ public class PieceManager : MonoBehaviour
     get { return m_gameManager; }
   }
 
-  public Vector3 GetPiezeSize()
+  public Vector3 GetPieceSize()
   {
-    if(sizePieze == Vector3.zero)
+    if(sizePiece == Vector3.zero)
     {
-      sizePieze = m_piezes[0].gameObject.GetComponent<Renderer>().bounds.size;
+      sizePiece = m_pieces[0].gameObject.GetComponent<Renderer>().bounds.size;
     }
-    return sizePieze;
+    return sizePiece;
   }
 
   #endregion
@@ -66,73 +66,73 @@ public class PieceManager : MonoBehaviour
   }
   private void UpdateCollisionSystem(bool ignore)
   {
-    for (int i = 0; i < m_piezes.Length - 1; ++i)
+    for (int i = 0; i < m_pieces.Length - 1; ++i)
     {
-      for (int j = i + 1; j < m_piezes.Length; ++j)
+      for (int j = i + 1; j < m_pieces.Length; ++j)
       {
-        Physics.IgnoreCollision(m_piezes[i].gameObject.GetComponent<Collider>(), m_piezes[j].gameObject.GetComponent<Collider>(), ignore);
+        Physics.IgnoreCollision(m_pieces[i].gameObject.GetComponent<Collider>(), m_pieces[j].gameObject.GetComponent<Collider>(), ignore);
       }
     }
   }
   private void AddCollisionDetection()
   {
-    for (int i = 0; i < m_piezes.Length; ++i)
+    for (int i = 0; i < m_pieces.Length; ++i)
     {
-      CollisionDetection cd = m_piezes[i].gameObject.AddComponent<CollisionDetection>();
+      CollisionDetection cd = m_pieces[i].gameObject.AddComponent<CollisionDetection>();
       cd.m_manager = this;
     }
   }
   private void UpdateRigidbodyInSons()
   {
-    for (int i = 0; i < m_piezes.Length; ++i)
+    for (int i = 0; i < m_pieces.Length; ++i)
     {
-      m_piezes[i].useGravity = true;
+      m_pieces[i].useGravity = true;
     }
   }
 
   public float CalculateMaxHeight()
   {
     float maxHeight = float.MinValue;
-    for (int i = 0; i < m_piezes.Length; ++i)
+    for (int i = 0; i < m_pieces.Length; ++i)
     {
-      if(m_piezes[i] == null)
+      if(m_pieces[i] == null)
       {
         continue;
       }
-      maxHeight = Mathf.Max(maxHeight, m_piezes[i].gameObject.transform.position.y);
+      maxHeight = Mathf.Max(maxHeight, m_pieces[i].gameObject.transform.position.y);
     }
     return maxHeight;
   }
   private void RemoveCollisionDetectionFromSons()
   {
-    for (int i = 0; i < m_piezes.Length; ++i)
+    for (int i = 0; i < m_pieces.Length; ++i)
     {
-      Destroy(m_piezes[i].gameObject.GetComponent<CollisionDetection>());
+      Destroy(m_pieces[i].gameObject.GetComponent<CollisionDetection>());
     }
   }
 
   public void MoveToPosition(Vector3 add)
   {
-    for(int i = 0; i < m_piezes.Length; ++i)
+    for(int i = 0; i < m_pieces.Length; ++i)
     {
-      m_piezes[i].MovePosition(m_piezes[i].gameObject.transform.position + add);
+      m_pieces[i].MovePosition(m_pieces[i].gameObject.transform.position + add);
     }
     m_rigidbody.MovePosition(this.transform.position + add);
   }
 
   public void SetVelocitiyLateral(float newVel)
   {
-    for (int i = 0; i < m_piezes.Length; ++i)
+    for (int i = 0; i < m_pieces.Length; ++i)
     {
-      m_piezes[i].velocity = new Vector3(newVel, m_piezes[i].velocity.y, 0);
+      m_pieces[i].velocity = new Vector3(newVel, m_pieces[i].velocity.y, 0);
     }
     m_rigidbody.velocity = new Vector3(newVel,m_rigidbody.velocity.y, 0);
   }
   public void SetVelocityDown(float newVel)
   {
-    for (int i = 0; i < m_piezes.Length; ++i)
+    for (int i = 0; i < m_pieces.Length; ++i)
     {
-      m_piezes[i].velocity = Vector3.down * newVel;
+      m_pieces[i].velocity = Vector3.down * newVel;
     }
     m_rigidbody.velocity = Vector3.down * newVel;
   }

@@ -3,8 +3,8 @@ using System.Collections;
 
 public class PieceHelper : MonoBehaviour {
 
-  public float MinX = -6;
-  public float MaxX = 6;
+  public float MinX = -6.4f;
+  public float MaxX = 6.4f;
   private Renderer m_renderer;
 
   void Start()

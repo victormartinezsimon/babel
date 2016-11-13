@@ -8,13 +8,13 @@ public class GameManager : MonoBehaviour
   public GameObject Ground;
   public GameObject[] Pieces;
 
-  private PieceManager m_currentPieze;
-  private GameObject m_nextPieze;
+  private PieceManager m_currentPiece;
+  private GameObject m_nextPiece;
 
   private List<PieceManager> m_listPieces;
 
-  [Header("Next pieze")]
-  public Transform m_nextPiezeHolder;
+  [Header("Next piece")]
+  public Transform m_nextPieceHolder;
   private GameObject nextPieceInstance;
 
   private float m_actualPuntuaction;
@@ -46,14 +46,14 @@ public class GameManager : MonoBehaviour
   // Use this for initialization
   void Start()
   {
-    m_nextPieze = Pieces[Random.Range(0, Pieces.Length)];
+    m_nextPiece = Pieces[Random.Range(0, Pieces.Length)];
     m_listPieces = new List<PieceManager>();
     GeneratePiece();
   }
 
   public void OnCollisionDetection()
   {
-    m_listPieces.Add(m_currentPieze);
+    m_listPieces.Add(m_currentPiece);
     GeneratePiece();
     CalculateMaxHeight();
     RecordManager.GetInstance().SetActualPuntuaction(m_actualPuntuaction);
@@ -66,18 +66,18 @@ public class GameManager : MonoBehaviour
     float x = Random.Range(-sizeX/2.0f, sizeX / 2.0f);
     position.x = Mathf.RoundToInt(x);
        
-    GameObject go = Instantiate(m_nextPieze, position, Quaternion.identity) as GameObject;
-    m_currentPieze = go.GetComponent<PieceManager>();
-    m_currentPieze.transform.parent = this.transform;
-    m_nextPieze = Pieces[Random.Range(0, Pieces.Length)];
+    GameObject go = Instantiate(m_nextPiece, position, Quaternion.identity) as GameObject;
+    m_currentPiece = go.GetComponent<PieceManager>();
+    m_currentPiece.transform.parent = this.transform;
+    m_nextPiece = Pieces[Random.Range(0, Pieces.Length)];
 
     if(nextPieceInstance != null)
     {
       Destroy(nextPieceInstance);
     }
 
-    nextPieceInstance = Instantiate(m_nextPieze, m_nextPiezeHolder.position, Quaternion.identity)as GameObject;
-    nextPieceInstance.transform.parent = m_nextPiezeHolder;
+    nextPieceInstance = Instantiate(m_nextPiece, m_nextPieceHolder.position, Quaternion.identity)as GameObject;
+    nextPieceInstance.transform.parent = m_nextPieceHolder;
     nextPieceInstance.transform.localScale = Vector3.one;
     nextPieceInstance.layer = LayerMask.NameToLayer("NextPiece");
     Destroy(nextPieceInstance.GetComponent<PieceManager>());
