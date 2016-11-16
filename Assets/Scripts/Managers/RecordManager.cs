@@ -13,7 +13,7 @@ public class RecordManager : MonoBehaviour {
   public GameObject BestLine;
   public Text ActualValueText;
   public GameObject Fireworks;
-  public bool ResetPuntuaction;
+  public float MinRecord = 10;
 
   public static RecordManager GetInstance()
   {
@@ -38,12 +38,8 @@ public class RecordManager : MonoBehaviour {
     }
     m_instance = this;
 
-    if(ResetPuntuaction)
-    {
-      PlayerPrefs.SetFloat(KEY_PLAYERPREFS, 0);
-    }
-
     m_bestValue = PlayerPrefs.GetFloat(KEY_PLAYERPREFS);
+    m_bestValue = Mathf.Max(MinRecord, m_bestValue);
     SetText(ActualValueText, 0.0f);
 
     if(BestLine != null)
