@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 
 public class RememberManager : MonoBehaviour
 {
@@ -8,10 +9,12 @@ public class RememberManager : MonoBehaviour
   public float TimeBetweenStep;
   public enum PlayingMode { RECORDING, FORWARD, REWIND, NONE };
   public PlayingMode m_state;
+  private Mutex m_mutex;
 
   public struct Action
   {
     public Vector3 m_position;
+    public Quaternion m_rotation;
     public GameObject go;
     public int ID;
   }
@@ -50,6 +53,8 @@ public class RememberManager : MonoBehaviour
     m_gameobjectsForAnimations = new Dictionary<int, GameObject>();
     m_gameobjectID = 0;
     m_timeWaitSnapShot = 0;
+    m_mutex = new Mutex(true);
+    m_mutex.ReleaseMutex();
     m_state = PlayingMode.RECORDING;
   }
   void Update()
@@ -64,16 +69,18 @@ public class RememberManager : MonoBehaviour
 
   public int Register(GameObject go)
   {
+    m_mutex.WaitOne();
     CreateSnapShot();
-
     Action a = new Action();
     a.ID = m_gameobjectID;
     a.m_position = go.transform.position;
+    a.m_rotation = go.transform.rotation;
     a.go = go;
 
     m_allActions[m_tickInRecord].Add(a);
 
     ++m_gameobjectID;
+    m_mutex.ReleaseMutex();
     return a.ID;
   }
   public void Destroy(int id)
@@ -98,10 +105,19 @@ public class RememberManager : MonoBehaviour
         Action a = new Action();
         a.ID = action.ID;
         a.m_position = action.go.transform.position;
+        a.m_rotation = action.go.transform.rotation;
         a.go = action.go;
         list.Add(a);
       }
-      m_allActions.Add(m_tickInRecord, list);
+      if(m_allActions.ContainsKey(m_tickInRecord))
+      {
+        m_allActions[m_tickInRecord] = list;
+
+      }
+      else
+      {
+        m_allActions.Add(m_tickInRecord, list);
+      }
     }
     else
     {
@@ -164,7 +180,7 @@ public class RememberManager : MonoBehaviour
     List<Action> m_list = m_allActions[m_timesSnapShots[m_timesSnapShots.Count - 1]];
     for (int i = 0; i < m_list.Count; ++i)
     {
-      m_gameobjectsForAnimations.Add(m_list[i].ID, Instantiate(m_list[i].go) as GameObject);
+      m_gameobjectsForAnimations.Add(m_list[i].ID, CleanGameObject(Instantiate(m_list[i].go) as GameObject));
     }
   }
   private void HideOriginalGameObjects()
@@ -231,12 +247,14 @@ public class RememberManager : MonoBehaviour
       Action next = actionsInNextIndex.Find((a) => a.ID == actual.ID);
       if (!m_gameobjectsForAnimations.ContainsKey(actual.ID))
       {
-        m_gameobjectsForAnimations.Add(actual.ID, Instantiate(actual.go) as GameObject);
+        m_gameobjectsForAnimations.Add(actual.ID, CleanGameObject(Instantiate(actual.go) as GameObject));
       }
 
       GameObject go = m_gameobjectsForAnimations[actual.ID];
       Vector3 position = Vector3.Lerp(actual.m_position, next.m_position, timeForLerp);
+      Quaternion rotation = Quaternion.Slerp(actual.m_rotation, next.m_rotation, timeForLerp);
       go.transform.position = position;
+      go.transform.rotation = rotation;
 
     }
 
@@ -248,5 +266,14 @@ public class RememberManager : MonoBehaviour
         m_gameobjectsForAnimations.Remove(key);
       }
     }
+  }
+
+  private GameObject CleanGameObject(GameObject go)
+  {
+    Destroy(go.GetComponent<Rigidbody>());
+    Destroy(go.GetComponent<Collider>());
+    Destroy(go.GetComponent<RememberMe>());
+    Destroy(go.GetComponent<PieceHelper>());
+    return go;
   }
 }

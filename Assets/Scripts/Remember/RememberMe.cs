@@ -3,7 +3,7 @@ using System.Collections;
 
 public class RememberMe : MonoBehaviour {
 
-  private int ID;
+  public int ID;
   private RememberManager m_manager;
 
 	// Use this for initialization
