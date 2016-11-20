@@ -10,13 +10,15 @@ public class RememberManager : MonoBehaviour
   public enum PlayingMode { RECORDING, FORWARD, REWIND, NONE };
   public PlayingMode m_state;
   private Mutex m_mutex;
+  private Dictionary<int, GameObject> m_gameobjectsForClone;
 
   public struct Action
   {
     public Vector3 m_position;
     public Quaternion m_rotation;
-    public GameObject go;
+    public int m_gameobjectID;
     public int ID;
+    public GameObject m_GameObject;
   }
 
   public Dictionary<float, List<Action>> m_allActions;
@@ -51,6 +53,7 @@ public class RememberManager : MonoBehaviour
     m_allActions = new Dictionary<float, List<Action>>();
     m_timesSnapShots = new List<float>();
     m_gameobjectsForAnimations = new Dictionary<int, GameObject>();
+    m_gameobjectsForClone = new Dictionary<int, GameObject>();
     m_gameobjectID = 0;
     m_timeWaitSnapShot = 0;
     m_mutex = new Mutex(true);
@@ -67,7 +70,7 @@ public class RememberManager : MonoBehaviour
     }
   }
 
-  public int Register(GameObject go)
+  public int Register(GameObject go, int gameobjectID)
   {
     m_mutex.WaitOne();
     CreateSnapShot();
@@ -75,9 +78,17 @@ public class RememberManager : MonoBehaviour
     a.ID = m_gameobjectID;
     a.m_position = go.transform.position;
     a.m_rotation = go.transform.rotation;
-    a.go = go;
+    a.m_gameobjectID = gameobjectID;
+    a.m_GameObject = go;
 
     m_allActions[m_tickInRecord].Add(a);
+    if(!m_gameobjectsForClone.ContainsKey(gameobjectID))
+    {
+      GameObject forclone = CleanGameObject(Instantiate(go));
+      forclone.transform.SetParent(this.gameObject.transform);
+      forclone.SetActive(false);
+      m_gameobjectsForClone.Add(gameobjectID, forclone);
+    }
 
     ++m_gameobjectID;
     m_mutex.ReleaseMutex();
@@ -104,9 +115,10 @@ public class RememberManager : MonoBehaviour
         Action action = lastActions[i];
         Action a = new Action();
         a.ID = action.ID;
-        a.m_position = action.go.transform.position;
-        a.m_rotation = action.go.transform.rotation;
-        a.go = action.go;
+        a.m_position = action.m_GameObject.transform.position;
+        a.m_rotation = action.m_GameObject.transform.rotation;
+        a.m_gameobjectID = action.m_gameobjectID;
+        a.m_GameObject = action.m_GameObject;
         list.Add(a);
       }
       if(m_allActions.ContainsKey(m_tickInRecord))
@@ -180,7 +192,10 @@ public class RememberManager : MonoBehaviour
     List<Action> m_list = m_allActions[m_timesSnapShots[m_timesSnapShots.Count - 1]];
     for (int i = 0; i < m_list.Count; ++i)
     {
-      m_gameobjectsForAnimations.Add(m_list[i].ID, CleanGameObject(Instantiate(m_list[i].go) as GameObject));
+      GameObject goClone = Instantiate(m_gameobjectsForClone[m_list[i].m_gameobjectID]) as GameObject;
+      goClone.SetActive(true);
+      goClone.name = "Animation [" + m_list[i].ID + "]";
+      m_gameobjectsForAnimations.Add(m_list[i].ID, goClone);
     }
   }
   private void HideOriginalGameObjects()
@@ -188,7 +203,7 @@ public class RememberManager : MonoBehaviour
     List<Action> m_list = m_allActions[m_timesSnapShots[m_timesSnapShots.Count - 1]];
     for (int i = 0; i < m_list.Count; ++i)
     {
-      m_list[i].go.SetActive(false);
+      m_list[i].m_GameObject.SetActive(false);
     }
   }
 
@@ -247,7 +262,10 @@ public class RememberManager : MonoBehaviour
       Action next = actionsInNextIndex.Find((a) => a.ID == actual.ID);
       if (!m_gameobjectsForAnimations.ContainsKey(actual.ID))
       {
-        m_gameobjectsForAnimations.Add(actual.ID, CleanGameObject(Instantiate(actual.go) as GameObject));
+        GameObject goClone = Instantiate(m_gameobjectsForClone[actual.m_gameobjectID]) as GameObject;
+        goClone.SetActive(true);
+        goClone.name = "Animation [" + actual.ID + "]"; ;
+        m_gameobjectsForAnimations.Add(actual.ID, goClone);
       }
 
       GameObject go = m_gameobjectsForAnimations[actual.ID];
@@ -258,14 +276,21 @@ public class RememberManager : MonoBehaviour
 
     }
 
+    List<int> toRemove = new List<int>();
     foreach (int key in m_gameobjectsForAnimations.Keys)
     {
       if (!actionsInIndex.Exists((a) => a.ID == key))
       {
         Destroy(m_gameobjectsForAnimations[key]);
-        m_gameobjectsForAnimations.Remove(key);
+        toRemove.Add(key);
       }
     }
+
+    for(int i = 0; i < toRemove.Count; ++i)
+    {
+      m_gameobjectsForAnimations.Remove(toRemove[i]);
+    }
+
   }
 
   private GameObject CleanGameObject(GameObject go)
@@ -273,7 +298,7 @@ public class RememberManager : MonoBehaviour
     Destroy(go.GetComponent<Rigidbody>());
     Destroy(go.GetComponent<Collider>());
     Destroy(go.GetComponent<RememberMe>());
-    Destroy(go.GetComponent<PieceHelper>());
+    Destroy(go.GetComponent<AutoDestroy>());
     return go;
   }
 }

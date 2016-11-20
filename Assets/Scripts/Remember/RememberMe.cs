@@ -3,7 +3,8 @@ using System.Collections;
 
 public class RememberMe : MonoBehaviour {
 
-  public int ID;
+  private int ID;
+  public int GameObjectID;
   private RememberManager m_manager;
 
 	// Use this for initialization
@@ -11,7 +12,7 @@ public class RememberMe : MonoBehaviour {
     m_manager = RememberManager.GetInstance();
     if(m_manager != null)
     {
-      ID = m_manager.Register(this.gameObject);
+      ID = m_manager.Register(this.gameObject, GameObjectID);
     }
   }
 	
