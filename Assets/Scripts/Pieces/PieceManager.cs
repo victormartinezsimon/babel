@@ -4,7 +4,6 @@ using System.Collections.Generic;
 
 public class PieceManager : MonoBehaviour
 {
-
   private bool m_firstCollision;
 
   private GameManager m_gameManager;

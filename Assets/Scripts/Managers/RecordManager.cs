@@ -10,10 +10,10 @@ public class RecordManager : MonoBehaviour {
   private static string KEY_PLAYERPREFS = "RECORD";
   private float m_bestValue = 0;
 
-  public GameObject BestLine;
-  public Text ActualValueText;
-  public GameObject Fireworks;
-  public float MinRecord = 10;
+  public GameObject m_bestLine;
+  public Text m_actualValueText;
+  public GameObject m_fireworks;
+  public float m_minRecord = 10;
 
   public static RecordManager GetInstance()
   {
@@ -39,14 +39,14 @@ public class RecordManager : MonoBehaviour {
     m_instance = this;
 
     m_bestValue = PlayerPrefs.GetFloat(KEY_PLAYERPREFS);
-    m_bestValue = Mathf.Max(MinRecord, m_bestValue);
-    SetText(ActualValueText, 0.0f);
+    m_bestValue = Mathf.Max(m_minRecord, m_bestValue);
+    SetText(m_actualValueText, 0.0f);
 
-    if(BestLine != null)
+    if(m_bestLine != null)
     {
-      Vector3 pos = BestLine.transform.position;
+      Vector3 pos = m_bestLine.transform.position;
       pos.y = m_bestValue;
-      BestLine.transform.position = pos;
+      m_bestLine.transform.position = pos;
     }
 
   }
@@ -56,14 +56,14 @@ public class RecordManager : MonoBehaviour {
     if(val > m_actualValue)
     {
       m_actualValue = val;
-      SetText(ActualValueText, m_actualValue);
+      SetText(m_actualValueText, m_actualValue);
       if (m_actualValue >= m_bestValue)
       {
         m_bestValue = m_actualValue;
         PlayerPrefs.SetFloat(KEY_PLAYERPREFS, m_bestValue);
-        if(Fireworks != null)
+        if(m_fireworks != null)
         {
-          Fireworks.SetActive(true);
+          m_fireworks.SetActive(true);
           AudioEngine.GetInstance().PlayFirworks();
         }
       }

@@ -6,9 +6,9 @@ using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
-  public Transform InitialPosition;
-  public GameObject Ground;
-  public GameObject[] Pieces;
+  public Transform m_initialPosition;
+  public GameObject m_ground;
+  public GameObject[] m_pieces;
 
   private PieceManager m_currentPiece;
   private GameObject m_nextPiece;
@@ -17,15 +17,21 @@ public class GameManager : MonoBehaviour
 
   [Header("Next piece")]
   public Transform m_nextPieceHolder;
-  private GameObject nextPieceInstance;
+  private GameObject m_nextPieceInstance;
   public GameObject m_nextPieceCamera;
 
   private float m_actualPuntuaction;
 
   public float m_TotalLives = 10;
+  private bool m_rewind;
   private bool m_endGame;
   public GameObject m_endGameText;
   public Text m_actualLivesText;
+
+  [Header("Rewind")]
+  public GameObject m_rewindGeneral;
+  public GameObject m_rewindLogo;
+  public GameObject m_rewindLines;
 
   #region singleton
   private static GameManager m_instance;
@@ -54,13 +60,14 @@ public class GameManager : MonoBehaviour
   // Use this for initialization
   void Start()
   {
-    m_nextPiece = Pieces[Random.Range(0, Pieces.Length)];
+    m_nextPiece = m_pieces[Random.Range(0, m_pieces.Length)];
     m_listPieces = new List<PieceManager>();
     EnableTextGameOver(false);
     AudioEngine.GetInstance().PlayNormal();
     SubscribeEvents();
     GeneratePiece();
     UpdateActualLivesText();
+    m_rewindGeneral.SetActive(false);
   }
 
   public void OnCollisionDetection()
@@ -77,39 +84,39 @@ public class GameManager : MonoBehaviour
     {
       return;
     }
-    Vector3 position = InitialPosition.position;
-    float sizeX = Ground.GetComponent<Renderer>().bounds.size.x;
+    Vector3 position = m_initialPosition.position;
+    float sizeX = m_ground.GetComponent<Renderer>().bounds.size.x;
     float x = Random.Range(-sizeX/2.0f, sizeX / 2.0f);
     position.x = x;
        
     GameObject go = Instantiate(m_nextPiece, position, Quaternion.identity) as GameObject;
     m_currentPiece = go.GetComponent<PieceManager>();
     m_currentPiece.transform.parent = this.transform;
-    m_nextPiece = Pieces[Random.Range(0, Pieces.Length)];
+    m_nextPiece = m_pieces[Random.Range(0, m_pieces.Length)];
 
-    if(nextPieceInstance != null)
+    if(m_nextPieceInstance != null)
     {
-      Destroy(nextPieceInstance);
+      Destroy(m_nextPieceInstance);
     }
 
-    nextPieceInstance = Instantiate(m_nextPiece, m_nextPieceHolder.position, Quaternion.identity)as GameObject;
-    nextPieceInstance.transform.parent = m_nextPieceHolder;
-    nextPieceInstance.transform.localScale = Vector3.one;
-    nextPieceInstance.layer = LayerMask.NameToLayer("NextPiece");
-    Destroy(nextPieceInstance.GetComponent<PieceManager>());
-    Destroy(nextPieceInstance.GetComponent<PieceMovement>());
-    Destroy(nextPieceInstance.GetComponent<Rigidbody>());
+    m_nextPieceInstance = Instantiate(m_nextPiece, m_nextPieceHolder.position, Quaternion.identity)as GameObject;
+    m_nextPieceInstance.transform.parent = m_nextPieceHolder;
+    m_nextPieceInstance.transform.localScale = Vector3.one;
+    m_nextPieceInstance.layer = LayerMask.NameToLayer("NextPiece");
+    Destroy(m_nextPieceInstance.GetComponent<PieceManager>());
+    Destroy(m_nextPieceInstance.GetComponent<PieceMovement>());
+    Destroy(m_nextPieceInstance.GetComponent<Rigidbody>());
 
-    Collider[] colliders = nextPieceInstance.GetComponentsInChildren<Collider>();
+    Collider[] colliders = m_nextPieceInstance.GetComponentsInChildren<Collider>();
     for(int i = 0; i < colliders.Length; ++i)
     {
       colliders[i].enabled = false;
     }
 
-    for(int i = 0; i < nextPieceInstance.transform.childCount; ++i)
+    for(int i = 0; i < m_nextPieceInstance.transform.childCount; ++i)
     {
-      nextPieceInstance.transform.GetChild(i).gameObject.layer = LayerMask.NameToLayer("NextPiece");
-      Destroy(nextPieceInstance.transform.GetChild(i).gameObject.GetComponent<PieceHelper>());
+      m_nextPieceInstance.transform.GetChild(i).gameObject.layer = LayerMask.NameToLayer("NextPiece");
+      Destroy(m_nextPieceInstance.transform.GetChild(i).gameObject.GetComponent<PieceHelper>());
     }
 
   }
@@ -134,6 +141,7 @@ public class GameManager : MonoBehaviour
     if (m_TotalLives <= 0)
     {
       m_endGame = true;
+      m_rewind = true;
       m_nextPieceCamera.SetActive(false);
       Destroy(m_currentPiece);
       FinishGame();
@@ -142,6 +150,9 @@ public class GameManager : MonoBehaviour
   private void FinishGame()
   {
     AudioEngine.GetInstance().PlayRewind();
+    m_rewindGeneral.SetActive(true);
+    StartCoroutine(AnimateRewindLogo());
+    StartCoroutine(AnimateRewindLines());
     RememberManager.GetInstance().DoRewind();
   }
 
@@ -161,6 +172,8 @@ public class GameManager : MonoBehaviour
   {
     AudioEngine.GetInstance().PlayFinalSong();
     RememberManager.GetInstance().DoForward();
+    m_rewind = false;
+    m_rewindGeneral.SetActive(false);
   }
 
   private void EndForward()
@@ -189,6 +202,28 @@ public class GameManager : MonoBehaviour
     if(m_actualLivesText != null)
     {
       m_actualLivesText.text = m_TotalLives.ToString();
+    }
+  }
+
+  private IEnumerator AnimateRewindLogo()
+  {
+    while(m_rewind)
+    {
+      m_rewindLogo.SetActive(true);
+      yield return new WaitForSeconds(0.5f);
+      m_rewindLogo.SetActive(false);
+      yield return new WaitForSeconds(0.5f);
+    }
+  }
+
+  private IEnumerator AnimateRewindLines()
+  {
+    while (m_rewind)
+    {
+      m_rewindLines.SetActive(true);
+      yield return new WaitForSeconds(Random.Range(0.2f, 0.8f));
+      m_rewindLines.SetActive(false);
+      yield return new WaitForSeconds(Random.Range(0.2f, 0.8f));
     }
   }
 }
