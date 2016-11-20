@@ -18,6 +18,7 @@ public class GameManager : MonoBehaviour
   [Header("Next piece")]
   public Transform m_nextPieceHolder;
   private GameObject nextPieceInstance;
+  public GameObject m_nextPieceCamera;
 
   private float m_actualPuntuaction;
 
@@ -56,6 +57,8 @@ public class GameManager : MonoBehaviour
     m_nextPiece = Pieces[Random.Range(0, Pieces.Length)];
     m_listPieces = new List<PieceManager>();
     EnableTextGameOver(false);
+    AudioEngine.GetInstance().PlayNormal();
+    SubscribeEvents();
     GeneratePiece();
     UpdateActualLivesText();
   }
@@ -124,21 +127,53 @@ public class GameManager : MonoBehaviour
 
   public void PieceDeleted()
   {
+    AudioEngine.GetInstance().PlayExplosion();
     --m_TotalLives;
     m_TotalLives = Mathf.Max(0, m_TotalLives);
     UpdateActualLivesText();
     if (m_TotalLives <= 0)
     {
       m_endGame = true;
-      StartCoroutine(FinishGame());
+      m_nextPieceCamera.SetActive(false);
+      Destroy(m_currentPiece);
+      FinishGame();
     }
   }
+  private void FinishGame()
+  {
+    AudioEngine.GetInstance().PlayRewind();
+    RememberManager.GetInstance().DoRewind();
+  }
 
-  private IEnumerator FinishGame()
+  private void SubscribeEvents()
+  {
+    RememberManager.GetInstance().RewindEnded += EndRewind;
+    RememberManager.GetInstance().ForwardEnded += EndForward;
+  }
+
+  private void UnSubscribeEvents()
+  {
+    RememberManager.GetInstance().RewindEnded -= EndRewind;
+    RememberManager.GetInstance().ForwardEnded -= EndForward;
+  }
+
+  private void EndRewind()
+  {
+    AudioEngine.GetInstance().PlayFinalSong();
+    RememberManager.GetInstance().DoForward();
+  }
+
+  private void EndForward()
+  {
+    StartCoroutine(RestarGame());
+  }
+
+  private IEnumerator RestarGame()
   {
     EnableTextGameOver(true);
+    UnSubscribeEvents();
     yield return new WaitForSeconds(5f);
-    SceneManager.LoadScene("Game");
+    SceneManager.LoadScene("Start");
   }
 
   private void EnableTextGameOver(bool value)

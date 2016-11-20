@@ -34,6 +34,9 @@ public class RememberManager : MonoBehaviour
   public float FactorForward;
   private Dictionary<int, GameObject> m_gameobjectsForAnimations;
 
+  public event System.Action RewindEnded;
+  public event System.Action ForwardEnded;
+
   #region singleton
   private static RememberManager m_instance;
   public static RememberManager GetInstance()
@@ -218,7 +221,11 @@ public class RememberManager : MonoBehaviour
     }
     else
     {
-      DoForward();
+      m_state = PlayingMode.NONE;
+      if (RewindEnded != null)
+      {
+        RewindEnded();
+      }
     }
   }
 
@@ -233,7 +240,11 @@ public class RememberManager : MonoBehaviour
     }
     else
     {
-      DoRewind();
+      m_state = PlayingMode.NONE;
+      if (ForwardEnded != null)
+      {
+        ForwardEnded();
+      }
     }
   }
 
@@ -256,6 +267,22 @@ public class RememberManager : MonoBehaviour
     List<Action> actionsInIndex = m_allActions[timeFromSnapshot];
     List<Action> actionsInNextIndex = m_allActions[timeFromSnapshotNext];
 
+    //destroy unnecesary pieces
+    List<int> toRemove = new List<int>();
+    foreach (int key in m_gameobjectsForAnimations.Keys)
+    {
+      if (!actionsInIndex.Exists((a) => a.ID == key))
+      {
+        Destroy(m_gameobjectsForAnimations[key]);
+        toRemove.Add(key);
+      }
+    }
+
+    for (int i = 0; i < toRemove.Count; ++i)
+    {
+      m_gameobjectsForAnimations.Remove(toRemove[i]);
+    }
+
     for (int i = 0; i < actionsInIndex.Count; ++i)
     {
       Action actual = actionsInIndex[i];
@@ -275,22 +302,6 @@ public class RememberManager : MonoBehaviour
       go.transform.rotation = rotation;
 
     }
-
-    List<int> toRemove = new List<int>();
-    foreach (int key in m_gameobjectsForAnimations.Keys)
-    {
-      if (!actionsInIndex.Exists((a) => a.ID == key))
-      {
-        Destroy(m_gameobjectsForAnimations[key]);
-        toRemove.Add(key);
-      }
-    }
-
-    for(int i = 0; i < toRemove.Count; ++i)
-    {
-      m_gameobjectsForAnimations.Remove(toRemove[i]);
-    }
-
   }
 
   private GameObject CleanGameObject(GameObject go)

@@ -20,6 +20,11 @@ public class PieceMovement : MonoBehaviour {
     MovementLateral();
   }
 
+  void OnDestroy()
+  {
+    RemoveCallbacks();
+  }
+
   public void CreateCallbacks()
   {
     InputManager instance = InputManager.GetInstance();

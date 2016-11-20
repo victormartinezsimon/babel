@@ -64,6 +64,7 @@ public class RecordManager : MonoBehaviour {
         if(Fireworks != null)
         {
           Fireworks.SetActive(true);
+          AudioEngine.GetInstance().PlayFirworks();
         }
       }
     }
