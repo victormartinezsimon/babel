@@ -19,6 +19,8 @@ public class GameManager : MonoBehaviour
   public Transform m_nextPieceHolder;
   private GameObject m_nextPieceInstance;
   public GameObject m_nextPieceCamera;
+  public float LimitLeft;
+  public float LimitRight;
 
   private float m_actualPuntuaction;
 
@@ -92,6 +94,7 @@ public class GameManager : MonoBehaviour
     GameObject go = Instantiate(m_nextPiece, position, Quaternion.identity) as GameObject;
     m_currentPiece = go.GetComponent<PieceManager>();
     m_currentPiece.transform.parent = this.transform;
+    m_currentPiece.m_gameLimits = new float[] { LimitLeft, LimitRight };
     m_nextPiece = m_pieces[Random.Range(0, m_pieces.Length)];
 
     if(m_nextPieceInstance != null)

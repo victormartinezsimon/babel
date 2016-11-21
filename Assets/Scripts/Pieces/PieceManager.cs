@@ -5,6 +5,7 @@ using System.Collections.Generic;
 public class PieceManager : MonoBehaviour
 {
   private bool m_firstCollision;
+  private bool m_firstDestroy;
 
   private GameManager m_gameManager;
   private PieceMovement m_pieceMovement;
@@ -14,6 +15,8 @@ public class PieceManager : MonoBehaviour
   private Vector3 sizePiece = Vector3.zero;
 
   private List<GameObject> m_pieces;
+
+  public float[] m_gameLimits;
 
   #region Getters
 
@@ -37,7 +40,6 @@ public class PieceManager : MonoBehaviour
   {
     m_firstCollision = false;
     InstantiatePiece();
-    UpdateCollisionSystem(true);
     AddCollisionDetection();
     m_pieceMovement = GetComponent<PieceMovement>();
     m_gameManager = GameManager.GetInstance();
@@ -66,16 +68,6 @@ public class PieceManager : MonoBehaviour
       Destroy(this);
     }
 
-  }
-  private void UpdateCollisionSystem(bool ignore)
-  {
-    for (int i = 0; i < m_pieces.Count - 1; ++i)
-    {
-      for (int j = i + 1; j < m_pieces.Count; ++j)
-      {
-        Physics.IgnoreCollision(m_pieces[i].GetComponent<Collider>(), m_pieces[j].GetComponent<Collider>(), ignore);
-      }
-    }
   }
   private void AddCollisionDetection()
   {
@@ -120,6 +112,17 @@ public class PieceManager : MonoBehaviour
         }
       }
       m_rigidbody.velocity = new Vector3(newVel, m_rigidbody.velocity.y, 0);
+
+      if(m_rigidbody.transform.position.x < m_gameLimits[0])
+      {
+        m_rigidbody.MovePosition(new Vector3(m_gameLimits[0], m_rigidbody.transform.position.y, m_rigidbody.transform.position.z));
+      }
+
+      if (m_rigidbody.transform.position.x > m_gameLimits[1])
+      {
+        m_rigidbody.MovePosition(new Vector3(m_gameLimits[1], m_rigidbody.transform.position.y, m_rigidbody.transform.position.z));
+      }
+
     }
   }
   public void SetVelocityDown(float newVel)
@@ -135,6 +138,16 @@ public class PieceManager : MonoBehaviour
         }
       }
       m_rigidbody.velocity = Vector3.down * newVel;
+    }
+  }
+
+  public void OnDestroyPiece()
+  {
+    if(!m_firstDestroy)
+    {
+      m_firstDestroy = true;
+      Destroy(this.gameObject);
+      GameManager.GetInstance().PieceDeleted();
     }
   }
 }

@@ -100,7 +100,7 @@ public class RememberManager : MonoBehaviour
   public void Destroy(int id)
   {
     CreateSnapShot();
-
+    
     List<Action> list = m_allActions[m_timesSnapShots[m_timesSnapShots.Count - 1]];
     Action a = list.Find((a1) => a1.ID == id);
     list.Remove(a);
@@ -109,6 +109,7 @@ public class RememberManager : MonoBehaviour
   private void CreateSnapShot()
   {
     RemoveFirstSnapShot();
+  
     if (m_timesSnapShots.Count > 0)
     {
       List<Action> list = new List<Action>();
@@ -235,8 +236,12 @@ public class RememberManager : MonoBehaviour
     {
       m_timeAcumAnimation += Time.deltaTime * FactorForward;
       int index = FindCloseIndex(m_timeAcumAnimation);
-      float timeLerp = (m_timeAcumAnimation - m_timesSnapShots[index]) / (m_timesSnapShots[index + 1] - m_timesSnapShots[index]);
-      ColocateAllPiecesAnimation(index, timeLerp);
+      
+      if(index >= 0)
+      {
+        float timeLerp = (m_timeAcumAnimation - m_timesSnapShots[index]) / (m_timesSnapShots[index + 1] - m_timesSnapShots[index]);
+        ColocateAllPiecesAnimation(index, timeLerp);
+      }
     }
     else
     {
@@ -257,7 +262,7 @@ public class RememberManager : MonoBehaviour
         return i - 1;
       }
     }
-    return 0;
+    return -1;
   }
 
   private void ColocateAllPiecesAnimation(int index, float timeForLerp)
@@ -287,6 +292,11 @@ public class RememberManager : MonoBehaviour
     {
       Action actual = actionsInIndex[i];
       Action next = actionsInNextIndex.Find((a) => a.ID == actual.ID);
+      //if there is no reference in the future, this will be deleted, so we dont move it
+      if(!actionsInNextIndex.Exists((a) => a.ID == actual.ID))
+      {
+        next = actual;
+      }
       if (!m_gameobjectsForAnimations.ContainsKey(actual.ID))
       {
         GameObject goClone = Instantiate(m_gameobjectsForClone[actual.m_gameobjectID]) as GameObject;
@@ -300,7 +310,6 @@ public class RememberManager : MonoBehaviour
       Quaternion rotation = Quaternion.Slerp(actual.m_rotation, next.m_rotation, timeForLerp);
       go.transform.position = position;
       go.transform.rotation = rotation;
-
     }
   }
 

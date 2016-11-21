@@ -6,10 +6,20 @@ public class TriggerDead : MonoBehaviour
   public GameObject DeadParticles;
   void OnCollisionEnter(Collision other)
   {
-    Destroy(other.gameObject);
+    PieceManager pm = other.gameObject.GetComponent<PieceManager>();
+    if(pm != null)
+    {
+      pm.OnDestroyPiece();
+    }
+    else
+    {
+      Debug.Log(other.transform.name);
+      Destroy(other.gameObject);
+      GameManager.GetInstance().PieceDeleted();
+    }
+
     GameObject go = Instantiate(DeadParticles) as GameObject;
     go.transform.position = other.transform.position;
-    GameManager.GetInstance().PieceDeleted();
     Destroy(go, 1);
   }
 }
