@@ -35,6 +35,12 @@ public class GameManager : MonoBehaviour
   public GameObject m_rewindLogo;
   public GameObject m_rewindLines;
 
+  [Header("LastViewCamera")]
+  public GameObject m_limitCameraLeft;
+  public GameObject m_limitCameraRight;
+  public CameraManager m_cameraManager;
+
+
   #region singleton
   private static GameManager m_instance;
   public static GameManager GetInstance()
@@ -70,6 +76,11 @@ public class GameManager : MonoBehaviour
     GeneratePiece();
     UpdateActualLivesText();
     m_rewindGeneral.SetActive(false);
+  }
+
+  private void ExitGame()
+  {
+    StartCoroutine(RestarGame(0));
   }
 
   public void OnCollisionDetection()
@@ -120,6 +131,8 @@ public class GameManager : MonoBehaviour
     {
       m_nextPieceInstance.transform.GetChild(i).gameObject.layer = LayerMask.NameToLayer("NextPiece");
       Destroy(m_nextPieceInstance.transform.GetChild(i).gameObject.GetComponent<PieceHelper>());
+      Destroy(m_nextPieceInstance.transform.GetChild(i).gameObject.GetComponent<PieceAutoDestroy>());
+      Destroy(m_nextPieceInstance.transform.GetChild(i).gameObject.GetComponent<RememberMe>());
     }
 
   }
@@ -153,6 +166,7 @@ public class GameManager : MonoBehaviour
   private void FinishGame()
   {
     AudioEngine.GetInstance().PlayRewind();
+    RecalculateCamera();
     m_rewindGeneral.SetActive(true);
     StartCoroutine(AnimateRewindLogo());
     StartCoroutine(AnimateRewindLines());
@@ -163,12 +177,16 @@ public class GameManager : MonoBehaviour
   {
     RememberManager.GetInstance().RewindEnded += EndRewind;
     RememberManager.GetInstance().ForwardEnded += EndForward;
+    InputManager.GetInstance().Exit += ExitGame;
+
   }
 
   private void UnSubscribeEvents()
   {
     RememberManager.GetInstance().RewindEnded -= EndRewind;
     RememberManager.GetInstance().ForwardEnded -= EndForward;
+    InputManager.GetInstance().Exit -= ExitGame;
+
   }
 
   private void EndRewind()
@@ -184,11 +202,12 @@ public class GameManager : MonoBehaviour
     StartCoroutine(RestarGame());
   }
 
-  private IEnumerator RestarGame()
+  private IEnumerator RestarGame(float time = 5)
   {
     EnableTextGameOver(true);
     UnSubscribeEvents();
-    yield return new WaitForSeconds(5f);
+    yield return new WaitForSeconds(time);
+
     SceneManager.LoadScene("Start");
   }
 
@@ -228,5 +247,12 @@ public class GameManager : MonoBehaviour
       m_rewindLines.SetActive(false);
       yield return new WaitForSeconds(Random.Range(0.2f, 0.8f));
     }
+  }
+
+  private void RecalculateCamera()
+  {
+    float limitLeft = m_limitCameraLeft.transform.position.x - m_limitCameraLeft.GetComponent<Renderer>().bounds.size.x / 2;
+    float limitRight = m_limitCameraLeft.transform.position.x + m_limitCameraLeft.GetComponent<Renderer>().bounds.size.x / 2;
+    m_cameraManager.RecalculateCamera(limitLeft, limitRight, RecordManager.GetInstance().ActualValue);
   }
 }

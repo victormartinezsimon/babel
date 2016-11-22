@@ -14,6 +14,7 @@ public class InputManager : MonoBehaviour
   public KeyCode m_KeyRotateLeft;
   public KeyCode m_KeyRotateRight;
 
+  public event Action Exit;
   public event Action<bool> MoveDown;
   public event Action<bool> Rotate;
   public event Action<bool> MoveLeft;
@@ -50,6 +51,10 @@ public class InputManager : MonoBehaviour
 
   private void ManageImportantInput()
   {
+    if(Input.GetKeyDown(KeyCode.Escape))
+    {
+      Exit();
+    }
     if (DownManagement())
     {
       return;

@@ -6,6 +6,7 @@ public class TriggerDead : MonoBehaviour
   public GameObject DeadParticles;
   void OnCollisionEnter(Collision other)
   {
+    Debug.Log("the collision is with => " + other.gameObject.name);
     PieceManager pm = other.gameObject.GetComponent<PieceManager>();
     if(pm != null)
     {

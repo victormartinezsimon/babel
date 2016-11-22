@@ -31,6 +31,7 @@ public class CameraManager : MonoBehaviour
 
   public float animationDuration = 0.1f;
   private bool InAnimation = false;
+  private bool m_cameraChanged = false;
 
   private float m_timeAcum = 0;
   void Start()
@@ -48,7 +49,7 @@ public class CameraManager : MonoBehaviour
 
   void Update()
   {
-    if (InAnimation)
+    if (InAnimation || m_cameraChanged)
     {
       return;
     }
@@ -102,4 +103,37 @@ public class CameraManager : MonoBehaviour
     });
   }
 
+
+  public void RecalculateCamera(float limitLeft, float limitRight, float height)
+  {
+    float actualSize = m_camera.orthographicSize;
+    float position = m_camera.transform.position.y;
+    Vector3 bottomLeft = m_camera.ScreenToWorldPoint(new Vector3(0, 0, m_camera.nearClipPlane));
+    Vector3 topRight = m_camera.ScreenToWorldPoint(new Vector3(Screen.width, Screen.height, m_camera.nearClipPlane));
+
+    float actualWidht = topRight.x - bottomLeft.x;
+    float actualHeight = topRight.y - bottomLeft.y;
+
+    float desiredHeight = height - bottomLeft.y;
+
+    float newDesiredSize = desiredHeight * actualSize / actualHeight;
+
+    float maxwidth = limitRight - limitLeft;
+    float maxNewSize = maxwidth * actualSize / actualWidht;
+
+    float newSize = Mathf.Max(actualSize, Mathf.Min(newDesiredSize, maxNewSize));
+    m_camera.orthographicSize = newSize;
+    float newY = newSize * position / actualSize;
+
+    Vector3 pos = m_camera.transform.position;
+    pos.y = newY;
+    m_camera.transform.position = pos;
+    m_cameraChanged = true;
+  }
+
+  [ContextMenu("fake")]
+  public void FakeCamera()
+  {
+    RecalculateCamera(-50, 50, 5000);
+  }
 }
