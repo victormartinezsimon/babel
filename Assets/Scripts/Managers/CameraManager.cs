@@ -121,19 +121,12 @@ public class CameraManager : MonoBehaviour
     float maxwidth = limitRight - limitLeft;
     float maxNewSize = maxwidth * actualSize / actualWidht;
 
+    
     float newSize = Mathf.Max(actualSize, Mathf.Min(newDesiredSize, maxNewSize));
-    m_camera.orthographicSize = newSize;
     float newY = newSize * position / actualSize;
 
-    Vector3 pos = m_camera.transform.position;
-    pos.y = newY;
-    m_camera.transform.position = pos;
+    DOTween.To(() => m_camera.orthographicSize, (x) => m_camera.orthographicSize = x, newSize, animationDuration);
+    m_camera.transform.DOMoveY(newY, animationDuration);
     m_cameraChanged = true;
-  }
-
-  [ContextMenu("fake")]
-  public void FakeCamera()
-  {
-    RecalculateCamera(-50, 50, 5000);
   }
 }
