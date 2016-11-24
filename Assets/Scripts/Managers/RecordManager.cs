@@ -37,7 +37,6 @@ public class RecordManager : MonoBehaviour {
       Destroy(this);
     }
     m_instance = this;
-
     m_bestValue = PlayerPrefs.GetFloat(KEY_PLAYERPREFS);
     m_bestValue = Mathf.Max(m_minRecord, m_bestValue);
     SetText(m_actualValueText, 0.0f);
