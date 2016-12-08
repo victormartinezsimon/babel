@@ -21,7 +21,6 @@ public class PieceManager : MonoBehaviour
 
   private Mutex m_mutex;
   private int m_piecesAlive;
-  public float m_timeWait = 0.1f;
 
   #region Getters
 
@@ -45,7 +44,6 @@ public class PieceManager : MonoBehaviour
   {
     m_firstCollision = false;
     InstantiatePiece();
-    AddCollisionDetection();
     m_pieceMovement = GetComponent<PieceMovement>();
     m_gameManager = GameManager.GetInstance();
     m_rigidbody = GetComponent<Rigidbody>();
@@ -60,43 +58,40 @@ public class PieceManager : MonoBehaviour
     m_pieces = GetComponent<PieceBuilder>().m_pieces;
   }
 
-  public void MyCollisionEnter(GameObject piece)
+  public void OnCollisionEnter(Collision collision)
   {
-    m_mutex.WaitOne();
+    Debug.Log("collision");
     if(!m_firstCollision)
     {
       m_firstCollision = true;
-      StartCoroutine(EndMovement());
+      EndMovement();
     }
-    Destroy(piece);
+  }
+
+  public void DestroyPiece(GameObject go)
+  {
+    m_mutex.WaitOne();
+    m_gameManager.PieceDeleted();
     --m_piecesAlive;
-    if(m_piecesAlive <= 0)
+    Destroy(go);
+    if (m_piecesAlive <= 0)
     {
       Destroy(this.gameObject);
     }
     m_mutex.ReleaseMutex();
   }
 
-  private IEnumerator EndMovement()
+  private void EndMovement()
   {
-    yield return new WaitForSeconds(m_timeWait);
     SetVelocityDown(0);
     m_pieceMovement.RemoveCallbacks();
     Destroy(m_pieceMovement);//?
     m_rigidbody.useGravity = true;
-    if (GameManager.GetInstance() != null)
+    if(m_gameManager != null)
     {
-      GameManager.GetInstance().OnCollisionDetection();
+      m_gameManager.OnCollisionDetection();
     }
-  }
 
-  private void AddCollisionDetection()
-  {
-    for (int i = 0; i < m_pieces.Count; ++i)
-    {
-      GroundDetection cd = m_pieces[i].AddComponent<GroundDetection>();
-      cd.m_manager = this;
-    }
   }
 
   public float CalculateMaxHeight()
@@ -152,16 +147,6 @@ public class PieceManager : MonoBehaviour
         }
       }
       m_rigidbody.velocity = Vector3.down * newVel;
-    }
-  }
-
-  public void OnDestroyPiece()
-  {
-    if(!m_firstDestroy)
-    {
-      m_firstDestroy = true;
-      Destroy(this.gameObject);
-      GameManager.GetInstance().PieceDeleted();
     }
   }
 }

@@ -21,6 +21,7 @@ public class PieceBuilder : MonoBehaviour {
       GameObject go = Instantiate(m_cube, m_positions[i].position, Quaternion.identity) as GameObject;
       m_pieces.Add(go);
       go.transform.parent = this.transform;
+      go.name = this.gameObject.name + "-" + i;
     }
   }
 }

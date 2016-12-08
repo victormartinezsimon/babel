@@ -1,25 +1,58 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class TriggerDead : MonoBehaviour
 {
   public GameObject DeadParticles;
   void OnCollisionEnter(Collision other)
   {
-    PieceManager pm = other.gameObject.GetComponent<PieceManager>();
-    if(pm != null)
+    List<string> goEliminated = new List<string>();
+    ContactPoint[] points = other.contacts;
+    for(int i = 0; i < points.Length; ++i)
     {
-      pm.OnDestroyPiece();
+      //Debug.Log(points[i].otherCollider.gameObject.name);
+      GameObject go = points[i].otherCollider.gameObject;
+
+      if(goEliminated.Contains(go.name))
+      {
+        continue;
+      }
+      goEliminated.Add(go.name);
+
+      PieceManager pm = go.GetComponentInParent<PieceManager>();
+
+      if(pm != null)
+      {
+        pm.DestroyPiece(go);
+      }
+      else
+      {
+        Destroy(go);
+      }
+
+      GameObject particles = Instantiate(DeadParticles) as GameObject;
+      particles.transform.position = other.transform.position;
+      Destroy(particles, 1);
+    }
+    
+    /*
+    GameObject go = other.gameObject;
+    PieceManager pm = go.GetComponentInParent<PieceManager>();
+
+    if (pm != null)
+    {
+      pm.DestroyPiece(go);
     }
     else
     {
-      Debug.Log(other.transform.name);
-      Destroy(other.gameObject);
-      GameManager.GetInstance().PieceDeleted();
+      Destroy(go);
+      Debug.Log("this piece will be deleted withoug manager => " + go.name);
     }
 
-    GameObject go = Instantiate(DeadParticles) as GameObject;
-    go.transform.position = other.transform.position;
-    Destroy(go, 1);
+    GameObject particles = Instantiate(DeadParticles) as GameObject;
+    particles.transform.position = other.transform.position;
+    Destroy(particles, 1);
+    */
   }
 }
