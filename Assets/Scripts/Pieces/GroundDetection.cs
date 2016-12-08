@@ -1,19 +1,26 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class CollisionDetection : MonoBehaviour
+public class GroundDetection : MonoBehaviour
 {
   public PieceManager m_manager;
+  /*
   void OnCollisionEnter(Collision collision)
-  {
+    {
     if (m_manager != null)
     {
-      m_manager.OnCollisionEnter();
+      m_manager.OnCollisionEnter(this.gameObject);
     }
+  }
+  */
+
+  void OnCollisionEnter(Collision collision)
+  {
+    Debug.Log("collision");
   }
 
   void OnTriggerEnter(Collider other)
   {
-      m_manager.OnCollisionEnter();
+    Debug.Log("tigger");
   }
 }

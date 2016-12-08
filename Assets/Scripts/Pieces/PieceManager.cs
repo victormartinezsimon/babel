@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 
 public class PieceManager : MonoBehaviour
 {
@@ -17,6 +18,10 @@ public class PieceManager : MonoBehaviour
   private List<GameObject> m_pieces;
 
   public float[] m_gameLimits;
+
+  private Mutex m_mutex;
+  private int m_piecesAlive;
+  public float m_timeWait = 0.1f;
 
   #region Getters
 
@@ -44,6 +49,10 @@ public class PieceManager : MonoBehaviour
     m_pieceMovement = GetComponent<PieceMovement>();
     m_gameManager = GameManager.GetInstance();
     m_rigidbody = GetComponent<Rigidbody>();
+
+    m_mutex = new Mutex(true);
+    m_mutex.ReleaseMutex();
+    m_piecesAlive = GetComponent<PieceBuilder>().m_pieces.Count;
   }
 
   private void InstantiatePiece()
@@ -51,29 +60,41 @@ public class PieceManager : MonoBehaviour
     m_pieces = GetComponent<PieceBuilder>().m_pieces;
   }
 
-  public void OnCollisionEnter()
+  public void MyCollisionEnter(GameObject piece)
   {
-    if (!m_firstCollision)
+    m_mutex.WaitOne();
+    if(!m_firstCollision)
     {
       m_firstCollision = true;
-      SetVelocityDown(0);
-      RemoveCollisionDetectionFromSons();
-      m_pieceMovement.RemoveCallbacks();
-      Destroy(m_pieceMovement);
-      m_rigidbody.useGravity = true;
-      if (GameManager.GetInstance() != null)
-      {
-        GameManager.GetInstance().OnCollisionDetection();
-      }
-      Destroy(this);
+      StartCoroutine(EndMovement());
     }
-
+    Destroy(piece);
+    --m_piecesAlive;
+    if(m_piecesAlive <= 0)
+    {
+      Destroy(this.gameObject);
+    }
+    m_mutex.ReleaseMutex();
   }
+
+  private IEnumerator EndMovement()
+  {
+    yield return new WaitForSeconds(m_timeWait);
+    SetVelocityDown(0);
+    m_pieceMovement.RemoveCallbacks();
+    Destroy(m_pieceMovement);//?
+    m_rigidbody.useGravity = true;
+    if (GameManager.GetInstance() != null)
+    {
+      GameManager.GetInstance().OnCollisionDetection();
+    }
+  }
+
   private void AddCollisionDetection()
   {
     for (int i = 0; i < m_pieces.Count; ++i)
     {
-      CollisionDetection cd = m_pieces[i].AddComponent<CollisionDetection>();
+      GroundDetection cd = m_pieces[i].AddComponent<GroundDetection>();
       cd.m_manager = this;
     }
   }
@@ -90,13 +111,6 @@ public class PieceManager : MonoBehaviour
       maxHeight = Mathf.Max(maxHeight, m_pieces[i].transform.position.y);
     }
     return maxHeight;
-  }
-  private void RemoveCollisionDetectionFromSons()
-  {
-    for (int i = 0; i < m_pieces.Count; ++i)
-    {
-      Destroy(m_pieces[i].GetComponent<CollisionDetection>());
-    }
   }
 
   public void SetVelocitiyLateral(float newVel)
