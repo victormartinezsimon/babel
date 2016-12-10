@@ -53,7 +53,10 @@ public class InputManager : MonoBehaviour
   {
     if(Input.GetKeyDown(KeyCode.Escape))
     {
-      Exit();
+      if (Exit != null)
+      {
+        Exit();
+      }
     }
     if (DownManagement())
     {
